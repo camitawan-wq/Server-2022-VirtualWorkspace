@@ -1,4 +1,4 @@
-name: Windows Server 2022 Workspace (CMD + PowerShell Loop)
+name: Windows Server 2025 Workspace (CMD + PowerShell Loop)
 
 on:
   workflow_dispatch:
