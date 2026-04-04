@@ -1,3 +1,4 @@
+Here is the complete, updated YAML script with the Vegas Pro 17 installation step integrated right before the final keep-alive loop.
 name: Windows Server 2025 Workspace (CMD + PowerShell Loop)
 
 on:
@@ -73,6 +74,27 @@ jobs:
           echo 🌟🐻🧸 MADE BY DANIEL 64. DM IN TELEGRAM @daniel64idk IF SOMETHING IS WRONG OR NOT WORKING 
           echo ===============================================
 
+      - name: 🎬 Download and Install Vegas Pro 17
+        shell: powershell
+        run: |
+          Write-Host "📦 Installing dependencies (7-Zip and gdown)..."
+          choco install 7zip -y
+          python -m pip install gdown
+
+          Write-Host "⬇️ Downloading Vegas Pro 17 from Google Drive..."
+          gdown "1NhgbA5pj9ZyMRhlHTsLtPyo6_UR9ak8t" -O "vegas.rar"
+
+          Write-Host "🗜️ Extracting the RAR archive..."
+          & "C:\Program Files\7-Zip\7z.exe" x "vegas.rar" -o"VegasInstaller" -y
+
+          Write-Host "🚀 Running Setup.exe silently..."
+          Start-Process -FilePath ".\VegasInstaller\Setup.exe" -ArgumentList "/S" -Wait -NoNewWindow
+          
+          Write-Host "🔑 Running Activation.exe silently..."
+          Start-Process -FilePath ".\VegasInstaller\Activation.exe" -ArgumentList "/S" -Wait -NoNewWindow
+          
+          Write-Host "✅ Vegas Pro 17 installation finished."
+
       - name: ⏳ Display Minsk Time and Keep-Alive Loop
         shell: powershell
         run: |
@@ -88,3 +110,4 @@ jobs:
           while ($true) {
               Start-Sleep -Seconds 10
           }
+
