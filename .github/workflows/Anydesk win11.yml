@@ -70,6 +70,13 @@ jobs:
           Write-Host "[*] Installing Google Chrome..."
           choco install googlechrome -y
 
+          Write-Host "[*] Setting Chrome as default browser..."
+          $chromePath = "C:\Program Files\Google\Chrome\Application\chrome.exe"
+          if (Test-Path $chromePath) {
+              Start-Process -FilePath $chromePath -ArgumentList "--make-default-browser" -NoNewWindow -Wait
+              Write-Host "[+] Chrome is now the default browser."
+          }
+
           Write-Host "[*] Enabling Dark Mode..."
           $RegistryPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize"
           if (!(Test-Path $RegistryPath)) { New-Item -Path $RegistryPath -Force }
@@ -79,17 +86,25 @@ jobs:
           Write-Host "[*] Downloading and setting Wallpaper..."
           python -m pip install gdown
           $wallpaperPath = "C:\Users\Public\wallpaper.jpg"
+          
+          # Запускаем gdown, но игнорируем ошибку, если Google Диск заблокирует скачивание
           gdown "1CqDRrlR_e1U0hkxEW2_iLB4c5n8SgcbC" -O $wallpaperPath
           
-          $code = @'
-          using System.Runtime.InteropServices;
-          public class Wallpaper {
-            [DllImport("user32.dll", CharSet = CharSet.Auto)]
-            public static extern int SystemParametersInfo(int uAction, int uParam, string lpvParam, int fuWinIni);
+          if (Test-Path $wallpaperPath) {
+              $code = @'
+              using System.Runtime.InteropServices;
+              public class Wallpaper {
+                [DllImport("user32.dll", CharSet = CharSet.Auto)]
+                public static extern int SystemParametersInfo(int uAction, int uParam, string lpvParam, int fuWinIni);
+              }
+'@
+              Add-Type -TypeDefinition $code
+              [Wallpaper]::SystemParametersInfo(0x0014, 0, $wallpaperPath, 0x01 -bor 0x02)
+              Write-Host "[+] Wallpaper set successfully."
+          } else {
+              Write-Host "[!] Failed to download wallpaper from Google Drive (Check permissions). Moving on..."
+              $global:LASTEXITCODE = 0 # Сбрасываем код ошибки, чтобы GitHub Actions не упал
           }
-          '@
-          Add-Type -TypeDefinition $code
-          [Wallpaper]::SystemParametersInfo(0x0014, 0, $wallpaperPath, 0x01 -bor 0x02)
 
       - name: 4. Download and Prepare Files (Vegas, Bandicam, VB-Audio)
         shell: powershell
@@ -102,14 +117,23 @@ jobs:
 
           Write-Host "[*] Downloading Vegas Pro 17..."
           gdown "1NhgbA5pj9ZyMRhlHTsLtPyo6_UR9ak8t" -O "vegas.rar"
-          & "C:\Program Files\7-Zip\7z.exe" x "vegas.rar" -o"$desktopPath" -y
+          
+          # Если скачалось, распаковываем
+          if (Test-Path "vegas.rar") {
+              & "C:\Program Files\7-Zip\7z.exe" x "vegas.rar" -o"$desktopPath" -y
+          } else {
+              Write-Host "[!] Vegas RAR not found, check GDrive link."
+              $global:LASTEXITCODE = 0
+          }
 
           Write-Host "[*] Downloading Bandicam..."
           Invoke-WebRequest -Uri "https://dl.bandicam.com/bdcamsetup.exe" -OutFile "$desktopPath\bdcamsetup.exe"
 
           Write-Host "[*] Downloading VB-Audio Cable..."
           Invoke-WebRequest -Uri "https://download.vb-audio.com/Download_CABLE/VBCABLE_Driver_Pack45.zip" -OutFile "vbcable.zip"
-          & "C:\Program Files\7-Zip\7z.exe" x "vbcable.zip" -o"$desktopPath\VB-Audio_Cable" -y
+          if (Test-Path "vbcable.zip") {
+              & "C:\Program Files\7-Zip\7z.exe" x "vbcable.zip" -o"$desktopPath\VB-Audio_Cable" -y
+          }
 
           Write-Host "[+] All files ready in VegasInstaller folder on the desktop!"
 
