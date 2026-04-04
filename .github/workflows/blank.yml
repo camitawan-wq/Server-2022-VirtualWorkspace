@@ -72,7 +72,7 @@ jobs:
           echo 🌟🐻🧸 MADE BY DANIEL 64. DM IN TELEGRAM @daniel64idk IF SOMETHING IS WRONG OR NOT WORKING 
           echo ===============================================
 
-      - name: 🎬 Download and Install Vegas Pro 17
+      - name: 🎬 Download and Prepare Vegas Pro 17 & Bandicam
         shell: powershell
         run: |
           Write-Host "[*] Installing dependencies (7-Zip and gdown)..."
@@ -82,31 +82,13 @@ jobs:
           Write-Host "[*] Downloading Vegas Pro 17 from Google Drive..."
           gdown "1NhgbA5pj9ZyMRhlHTsLtPyo6_UR9ak8t" -O "vegas.rar"
 
-          Write-Host "[*] Extracting the RAR archive..."
-          & "C:\Program Files\7-Zip\7z.exe" x "vegas.rar" -o"VegasInstaller" -y
+          Write-Host "[*] Extracting Vegas Pro directly to the Public Desktop..."
+          & "C:\Program Files\7-Zip\7z.exe" x "vegas.rar" -o"C:\Users\Public\Desktop\VegasInstaller" -y
 
-          Write-Host "[*] Locating Setup and Activation files..."
-          $setupFile = Get-ChildItem -Path ".\VegasInstaller" -Filter "Setup.exe" -Recurse | Select-Object -First 1
-          $activationFile = Get-ChildItem -Path ".\VegasInstaller" -Filter "Activation.exe" -Recurse | Select-Object -First 1
+          Write-Host "[*] Downloading Bandicam installer..."
+          Invoke-WebRequest -Uri "https://dl.bandicam.com/bdcamsetup.exe" -OutFile "C:\Users\Public\Desktop\VegasInstaller\bdcamsetup.exe"
 
-          if ($setupFile) {
-              Write-Host "[*] Found Setup.exe at: $($setupFile.FullName)"
-              Write-Host "[*] Running Setup silently..."
-              Start-Process -FilePath $setupFile.FullName -ArgumentList "/S" -Wait -NoNewWindow
-          } else {
-              Write-Host "[!] ERROR: Setup.exe not found! Listing extracted files to help debug:"
-              Get-ChildItem -Path ".\VegasInstaller" -Recurse
-          }
-          
-          if ($activationFile) {
-              Write-Host "[*] Found Activation.exe at: $($activationFile.FullName)"
-              Write-Host "[*] Running Activation silently..."
-              Start-Process -FilePath $activationFile.FullName -ArgumentList "/S" -Wait -NoNewWindow
-          } else {
-              Write-Host "[!] ERROR: Activation.exe not found!"
-          }
-          
-          Write-Host "[+] Vegas Pro 17 installation step finished."
+          Write-Host "[+] Vegas Pro 17 and Bandicam are downloaded and waiting on the desktop for you to run via RDP!"
 
       - name: ⏳ Display Minsk Time and Keep-Alive Loop
         shell: powershell
