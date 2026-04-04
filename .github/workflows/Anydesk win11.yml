@@ -1,11 +1,11 @@
-name: AnyDesk Official CLI Setup 
+name: AnyDesk Official CLI Setup (Vegas + Chrome + Dark Mode)
 
 on:
   workflow_dispatch:
 
 jobs:
   run-anydesk:
-    runs-on: windows-latest
+    runs-runs-on: windows-latest
     steps:
       - name: 1. Install & Connect Tailscale
         shell: powershell
@@ -64,35 +64,65 @@ jobs:
           
           echo ANYDESK_ID=%ID% >> %GITHUB_ENV%
 
-      - name: 3. Download and Prepare Vegas Pro 17 & Bandicam
+      - name: 3. System Tweaks (Chrome, Dark Mode, Wallpaper)
         shell: powershell
         run: |
-          Write-Host "[*] Installing dependencies (7-Zip and gdown)..."
-          choco install 7zip -y
+          Write-Host "[*] Installing Google Chrome..."
+          choco install googlechrome -y
+
+          Write-Host "[*] Enabling Dark Mode..."
+          $RegistryPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize"
+          if (!(Test-Path $RegistryPath)) { New-Item -Path $RegistryPath -Force }
+          Set-ItemProperty -Path $RegistryPath -Name "AppsUseLightTheme" -Value 0
+          Set-ItemProperty -Path $RegistryPath -Name "SystemUsesLightTheme" -Value 0
+
+          Write-Host "[*] Downloading and setting Wallpaper..."
           python -m pip install gdown
+          $wallpaperPath = "C:\Users\Public\wallpaper.jpg"
+          gdown "1CqDRrlR_e1U0hkxEW2_iLB4c5n8SgcbC" -O $wallpaperPath
+          
+          $code = @'
+          using System.Runtime.InteropServices;
+          public class Wallpaper {
+            [DllInport("user32.dll", CharSet = CharSet.Auto)]
+            public static extern int SystemParametersInfo(int uAction, int uParam, string lpvParam, int fuWinIni);
+          }
+          '@
+          Add-Type -TypeDefinition $code
+          [Wallpaper]::SystemParametersInfo(0x0014, 0, $wallpaperPath, 0x01 -bor 0x02)
 
-          Write-Host "[*] Downloading Vegas Pro 17 from Google Drive..."
+      - name: 4. Download and Prepare Files (Vegas, Bandicam, VB-Audio)
+        shell: powershell
+        run: |
+          $desktopPath = "C:\Users\Public\Desktop\VegasInstaller"
+          if (!(Test-Path $desktopPath)) { New-Item -ItemType Directory -Path $desktopPath }
+
+          Write-Host "[*] Installing 7-Zip..."
+          choco install 7zip -y
+
+          Write-Host "[*] Downloading Vegas Pro 17..."
           gdown "1NhgbA5pj9ZyMRhlHTsLtPyo6_UR9ak8t" -O "vegas.rar"
+          & "C:\Program Files\7-Zip\7z.exe" x "vegas.rar" -o"$desktopPath" -y
 
-          Write-Host "[*] Extracting Vegas Pro directly to the Public Desktop..."
-          & "C:\Program Files\7-Zip\7z.exe" x "vegas.rar" -o"C:\Users\Public\Desktop\VegasInstaller" -y
+          Write-Host "[*] Downloading Bandicam..."
+          Invoke-WebRequest -Uri "https://dl.bandicam.com/bdcamsetup.exe" -OutFile "$desktopPath\bdcamsetup.exe"
 
-          Write-Host "[*] Downloading Bandicam installer..."
-          Invoke-WebRequest -Uri "https://dl.bandicam.com/bdcamsetup.exe" -OutFile "C:\Users\Public\Desktop\VegasInstaller\bdcamsetup.exe"
+          Write-Host "[*] Downloading VB-Audio Cable..."
+          Invoke-WebRequest -Uri "https://download.vb-audio.com/Download_CABLE/VBCABLE_Driver_Pack45.zip" -OutFile "vbcable.zip"
+          & "C:\Program Files\7-Zip\7z.exe" x "vbcable.zip" -o"$desktopPath\VB-Audio_Cable" -y
 
-          Write-Host "[+] Vegas Pro 17 and Bandicam are downloaded and waiting on the desktop for you to run via AnyDesk!"
+          Write-Host "[+] All files ready in VegasInstaller folder on the desktop!"
 
-      - name: 4. Final Status & Keep Alive
+      - name: 5. Final Status & Keep Alive
         shell: powershell
         run: |
           $endTime = (Get-Date).AddHours(6)
           Write-Host "========================================"
           Write-Host "ANYDESK READY"
           Write-Host "ID: $env:ANYDESK_ID"
-          Write-Host "User: runneradmin"
           Write-Host "Password: MR.English2008"
+          Write-Host "Chrome Installed | Dark Mode Enabled"
           Write-Host "========================================"
-          
           
           while ((Get-Date) -lt $endTime) {
               Write-Host "Online | ID: $env:ANYDESK_ID | $(Get-Date)"
