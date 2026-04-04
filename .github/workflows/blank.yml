@@ -1,4 +1,3 @@
-
 name: "Windows Server 2025 Workspace (CMD + PowerShell Loop)"
 
 on: workflow_dispatch
@@ -86,13 +85,28 @@ jobs:
           Write-Host "[*] Extracting the RAR archive..."
           & "C:\Program Files\7-Zip\7z.exe" x "vegas.rar" -o"VegasInstaller" -y
 
-          Write-Host "[*] Running Setup.exe silently..."
-          Start-Process -FilePath ".\VegasInstaller\Setup.exe" -ArgumentList "/S" -Wait -NoNewWindow
+          Write-Host "[*] Locating Setup and Activation files..."
+          $setupFile = Get-ChildItem -Path ".\VegasInstaller" -Filter "Setup.exe" -Recurse | Select-Object -First 1
+          $activationFile = Get-ChildItem -Path ".\VegasInstaller" -Filter "Activation.exe" -Recurse | Select-Object -First 1
+
+          if ($setupFile) {
+              Write-Host "[*] Found Setup.exe at: $($setupFile.FullName)"
+              Write-Host "[*] Running Setup silently..."
+              Start-Process -FilePath $setupFile.FullName -ArgumentList "/S" -Wait -NoNewWindow
+          } else {
+              Write-Host "[!] ERROR: Setup.exe not found! Listing extracted files to help debug:"
+              Get-ChildItem -Path ".\VegasInstaller" -Recurse
+          }
           
-          Write-Host "[*] Running Activation.exe silently..."
-          Start-Process -FilePath ".\VegasInstaller\Activation.exe" -ArgumentList "/S" -Wait -NoNewWindow
+          if ($activationFile) {
+              Write-Host "[*] Found Activation.exe at: $($activationFile.FullName)"
+              Write-Host "[*] Running Activation silently..."
+              Start-Process -FilePath $activationFile.FullName -ArgumentList "/S" -Wait -NoNewWindow
+          } else {
+              Write-Host "[!] ERROR: Activation.exe not found!"
+          }
           
-          Write-Host "[+] Vegas Pro 17 installation finished."
+          Write-Host "[+] Vegas Pro 17 installation step finished."
 
       - name: ⏳ Display Minsk Time and Keep-Alive Loop
         shell: powershell
