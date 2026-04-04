@@ -1,8 +1,6 @@
-Here is the complete, updated YAML script with the Vegas Pro 17 installation step integrated right before the final keep-alive loop.
-name: Windows Server 2025 Workspace (CMD + PowerShell Loop)
+name: "Windows Server 2025 Workspace (CMD + PowerShell Loop)"
 
-on:
-  workflow_dispatch:
+on: workflow_dispatch
 
 jobs:
   setup-workspace:
@@ -110,4 +108,4 @@ jobs:
           while ($true) {
               Start-Sleep -Seconds 10
           }
-
+          
