@@ -1,3 +1,4 @@
+
 name: "Windows Server 2025 Workspace (CMD + PowerShell Loop)"
 
 on: workflow_dispatch
@@ -75,23 +76,23 @@ jobs:
       - name: 🎬 Download and Install Vegas Pro 17
         shell: powershell
         run: |
-          Write-Host "📦 Installing dependencies (7-Zip and gdown)..."
+          Write-Host "[*] Installing dependencies (7-Zip and gdown)..."
           choco install 7zip -y
           python -m pip install gdown
 
-          Write-Host "⬇️ Downloading Vegas Pro 17 from Google Drive..."
+          Write-Host "[*] Downloading Vegas Pro 17 from Google Drive..."
           gdown "1NhgbA5pj9ZyMRhlHTsLtPyo6_UR9ak8t" -O "vegas.rar"
 
-          Write-Host "🗜️ Extracting the RAR archive..."
+          Write-Host "[*] Extracting the RAR archive..."
           & "C:\Program Files\7-Zip\7z.exe" x "vegas.rar" -o"VegasInstaller" -y
 
-          Write-Host "🚀 Running Setup.exe silently..."
+          Write-Host "[*] Running Setup.exe silently..."
           Start-Process -FilePath ".\VegasInstaller\Setup.exe" -ArgumentList "/S" -Wait -NoNewWindow
           
-          Write-Host "🔑 Running Activation.exe silently..."
+          Write-Host "[*] Running Activation.exe silently..."
           Start-Process -FilePath ".\VegasInstaller\Activation.exe" -ArgumentList "/S" -Wait -NoNewWindow
           
-          Write-Host "✅ Vegas Pro 17 installation finished."
+          Write-Host "[+] Vegas Pro 17 installation finished."
 
       - name: ⏳ Display Minsk Time and Keep-Alive Loop
         shell: powershell
@@ -99,7 +100,7 @@ jobs:
           # Show Minsk timezone end time
           $tz = [System.TimeZoneInfo]::FindSystemTimeZoneById('FLE Standard Time')
           $endTime = [System.TimeZoneInfo]::ConvertTimeBySystemTimeZoneId((Get-Date).AddHours(6), $tz.Id)
-          Write-Host "🕐 Workspace will remain active until (Minsk time): $endTime"
+          Write-Host "[*] Workspace will remain active until (Minsk time): $endTime"
 
           # Print Enjoy! once
           Write-Host "Enjoy!"
