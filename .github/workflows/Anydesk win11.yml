@@ -1,11 +1,11 @@
-name: AnyDesk Official CLI Setup (Vegas + Chrome + Dark Mode)
+name: "AnyDesk Official CLI Setup (Vegas + Chrome + Dark Mode)"
 
 on:
   workflow_dispatch:
 
 jobs:
   run-anydesk:
-    runs-runs-on: windows-latest
+    runs-on: windows-latest
     steps:
       - name: 1. Install & Connect Tailscale
         shell: powershell
@@ -84,7 +84,7 @@ jobs:
           $code = @'
           using System.Runtime.InteropServices;
           public class Wallpaper {
-            [DllInport("user32.dll", CharSet = CharSet.Auto)]
+            [DllImport("user32.dll", CharSet = CharSet.Auto)]
             public static extern int SystemParametersInfo(int uAction, int uParam, string lpvParam, int fuWinIni);
           }
           '@
