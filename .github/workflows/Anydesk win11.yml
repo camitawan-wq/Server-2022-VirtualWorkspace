@@ -18,7 +18,7 @@ jobs:
           $tsIP = & "$env:ProgramFiles\Tailscale\tailscale.exe" ip -4
           "TAILSCALE_IP=$tsIP" | Out-File -Append $env:GITHUB_ENV
 
-      - name: 3. Official AnyDesk Installation & Logic
+      - name: 2. Official AnyDesk Installation & Logic
         shell: cmd
         run: |
           echo [INFO] Downloading Official AnyDesk.exe...
@@ -64,6 +64,24 @@ jobs:
           
           echo ANYDESK_ID=%ID% >> %GITHUB_ENV%
 
+      - name: 3. Download and Prepare Vegas Pro 17 & Bandicam
+        shell: powershell
+        run: |
+          Write-Host "[*] Installing dependencies (7-Zip and gdown)..."
+          choco install 7zip -y
+          python -m pip install gdown
+
+          Write-Host "[*] Downloading Vegas Pro 17 from Google Drive..."
+          gdown "1NhgbA5pj9ZyMRhlHTsLtPyo6_UR9ak8t" -O "vegas.rar"
+
+          Write-Host "[*] Extracting Vegas Pro directly to the Public Desktop..."
+          & "C:\Program Files\7-Zip\7z.exe" x "vegas.rar" -o"C:\Users\Public\Desktop\VegasInstaller" -y
+
+          Write-Host "[*] Downloading Bandicam installer..."
+          Invoke-WebRequest -Uri "https://dl.bandicam.com/bdcamsetup.exe" -OutFile "C:\Users\Public\Desktop\VegasInstaller\bdcamsetup.exe"
+
+          Write-Host "[+] Vegas Pro 17 and Bandicam are downloaded and waiting on the desktop for you to run via AnyDesk!"
+
       - name: 4. Final Status & Keep Alive
         shell: powershell
         run: |
@@ -80,3 +98,4 @@ jobs:
               Write-Host "Online | ID: $env:ANYDESK_ID | $(Get-Date)"
               Start-Sleep -Seconds 300
           }
+          
