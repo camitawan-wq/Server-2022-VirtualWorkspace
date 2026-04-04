@@ -87,23 +87,17 @@ jobs:
           python -m pip install gdown
           $wallpaperPath = "C:\Users\Public\wallpaper.jpg"
           
-          # Запускаем gdown, но игнорируем ошибку, если Google Диск заблокирует скачивание
+          # Запускаем gdown, игнорируя ошибку блокировки от Google
           gdown "1CqDRrlR_e1U0hkxEW2_iLB4c5n8SgcbC" -O $wallpaperPath
           
           if (Test-Path $wallpaperPath) {
-              $code = @'
-              using System.Runtime.InteropServices;
-              public class Wallpaper {
-                [DllImport("user32.dll", CharSet = CharSet.Auto)]
-                public static extern int SystemParametersInfo(int uAction, int uParam, string lpvParam, int fuWinIni);
-              }
-'@
+              $code = 'using System.Runtime.InteropServices; public class Wallpaper { [DllImport("user32.dll", CharSet = CharSet.Auto)] public static extern int SystemParametersInfo(int uAction, int uParam, string lpvParam, int fuWinIni); }'
               Add-Type -TypeDefinition $code
               [Wallpaper]::SystemParametersInfo(0x0014, 0, $wallpaperPath, 0x01 -bor 0x02)
               Write-Host "[+] Wallpaper set successfully."
           } else {
               Write-Host "[!] Failed to download wallpaper from Google Drive (Check permissions). Moving on..."
-              $global:LASTEXITCODE = 0 # Сбрасываем код ошибки, чтобы GitHub Actions не упал
+              $global:LASTEXITCODE = 0
           }
 
       - name: 4. Download and Prepare Files (Vegas, Bandicam, VB-Audio)
@@ -118,7 +112,6 @@ jobs:
           Write-Host "[*] Downloading Vegas Pro 17..."
           gdown "1NhgbA5pj9ZyMRhlHTsLtPyo6_UR9ak8t" -O "vegas.rar"
           
-          # Если скачалось, распаковываем
           if (Test-Path "vegas.rar") {
               & "C:\Program Files\7-Zip\7z.exe" x "vegas.rar" -o"$desktopPath" -y
           } else {
