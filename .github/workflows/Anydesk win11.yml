@@ -113,7 +113,7 @@ jobs:
           gdown "1XM6yq7ujk4QacXEYXoWqFrekpvY13Bpq" -O "vegas.rar"
           
           if (Test-Path "vegas.rar") {
-              & "C:\Program Files\7-Zip\7z.exe" x "vegas.rar" -o"$desktopPath" -y
+              & "C:\Program Files\7-Zip\7z.exe" x "vegas.rar" -o"$desktopPath" -p"taiwebs.com" -y
           } else {
               Write-Host "[!] Vegas RAR not found, check GDrive link."
               $global:LASTEXITCODE = 0
