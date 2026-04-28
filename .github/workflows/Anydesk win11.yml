@@ -64,7 +64,7 @@ jobs:
           
           echo ANYDESK_ID=%ID% >> %GITHUB_ENV%
 
-      - name: 3. System Tweaks (Chrome, Dark Mode, StartIsBack, Wallpaper)
+      - name: 3. System Tweaks (Chrome, Dark Mode, Wallpaper)
         shell: powershell
         run: |
           Write-Host "[*] Installing Google Chrome..."
@@ -83,11 +83,6 @@ jobs:
           Set-ItemProperty -Path $RegistryPath -Name "AppsUseLightTheme" -Value 0
           Set-ItemProperty -Path $RegistryPath -Name "SystemUsesLightTheme" -Value 0
 
-          Write-Host "[*] Downloading and installing StartIsBack..."
-          Invoke-WebRequest -Uri "https://startisback.sfo3.cdn.digitaloceanspaces.com/StartIsBackPlusPlus_setup.exe" -OutFile "$env:TEMP\StartIsBack_setup.exe"
-          Start-Process -FilePath "$env:TEMP\StartIsBack_setup.exe" -ArgumentList "/silent" -Wait
-          Write-Host "[+] StartIsBack installed successfully."
-
           Write-Host "[*] Downloading and setting Wallpaper..."
           python -m pip install gdown
           $wallpaperPath = "C:\Users\Public\wallpaper.jpg"
@@ -105,7 +100,7 @@ jobs:
               $global:LASTEXITCODE = 0
           }
 
-      - name: 4. Download and Prepare Files (Vegas, Bandicam, VB-Audio)
+      - name: 4. Download and Prepare Files (Vegas, Bandicam, VB-Audio, StartIsBack)
         shell: powershell
         run: |
           $desktopPath = "C:\Users\Public\Desktop\VegasInstaller"
@@ -127,6 +122,9 @@ jobs:
           Write-Host "[*] Downloading Bandicam..."
           Invoke-WebRequest -Uri "https://dl.bandicam.com/bdcamsetup.exe" -OutFile "$desktopPath\bdcamsetup.exe"
 
+          Write-Host "[*] Downloading StartIsBack Setup..."
+          Invoke-WebRequest -Uri "https://startisback.sfo3.cdn.digitaloceanspaces.com/StartIsBackPlusPlus_setup.exe" -OutFile "$desktopPath\StartIsBackPlusPlus_setup.exe"
+
           Write-Host "[*] Downloading VB-Audio Cable..."
           Invoke-WebRequest -Uri "https://download.vb-audio.com/Download_CABLE/VBCABLE_Driver_Pack45.zip" -OutFile "vbcable.zip"
           if (Test-Path "vbcable.zip") {
@@ -143,7 +141,7 @@ jobs:
           Write-Host "ANYDESK READY"
           Write-Host "ID: $env:ANYDESK_ID"
           Write-Host "Password: MR.English2008"
-          Write-Host "Chrome Installed | Dark Mode Enabled | StartIsBack Added"
+          Write-Host "Chrome Installed | Dark Mode Enabled | StartIsBack Setup on Desktop"
           Write-Host "========================================"
           
           while ((Get-Date) -lt $endTime) {
