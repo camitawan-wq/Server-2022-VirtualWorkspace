@@ -5,7 +5,7 @@ on:
 
 jobs:
   run-anydesk:
-    runs-on: windows-latest
+    runs-on: windows-2022
     steps:
       - name: 1. Install & Connect Tailscale
         shell: powershell
@@ -64,7 +64,7 @@ jobs:
           
           echo ANYDESK_ID=%ID% >> %GITHUB_ENV%
 
-      - name: 3. System Tweaks (Chrome, Dark Mode, Wallpaper)
+      - name: 3. System Tweaks (Chrome, Dark Mode, StartIsBack, Wallpaper)
         shell: powershell
         run: |
           Write-Host "[*] Installing Google Chrome..."
@@ -82,6 +82,11 @@ jobs:
           if (!(Test-Path $RegistryPath)) { New-Item -Path $RegistryPath -Force }
           Set-ItemProperty -Path $RegistryPath -Name "AppsUseLightTheme" -Value 0
           Set-ItemProperty -Path $RegistryPath -Name "SystemUsesLightTheme" -Value 0
+
+          Write-Host "[*] Downloading and installing StartIsBack..."
+          Invoke-WebRequest -Uri "https://startisback.sfo3.cdn.digitaloceanspaces.com/StartIsBackPlusPlus_setup.exe" -OutFile "$env:TEMP\StartIsBack_setup.exe"
+          Start-Process -FilePath "$env:TEMP\StartIsBack_setup.exe" -ArgumentList "/silent" -Wait
+          Write-Host "[+] StartIsBack installed successfully."
 
           Write-Host "[*] Downloading and setting Wallpaper..."
           python -m pip install gdown
@@ -110,7 +115,7 @@ jobs:
           choco install 7zip -y
 
           Write-Host "[*] Downloading Vegas Pro 17..."
-          gdown "1NhgbA5pj9ZyMRhlHTsLtPyo6_UR9ak8t" -O "vegas.rar"
+          gdown "1XM6yq7ujk4QacXEYXoWqFrekpvY13Bpq" -O "vegas.rar"
           
           if (Test-Path "vegas.rar") {
               & "C:\Program Files\7-Zip\7z.exe" x "vegas.rar" -o"$desktopPath" -y
@@ -138,7 +143,7 @@ jobs:
           Write-Host "ANYDESK READY"
           Write-Host "ID: $env:ANYDESK_ID"
           Write-Host "Password: MR.English2008"
-          Write-Host "Chrome Installed | Dark Mode Enabled"
+          Write-Host "Chrome Installed | Dark Mode Enabled | StartIsBack Added"
           Write-Host "========================================"
           
           while ((Get-Date) -lt $endTime) {
