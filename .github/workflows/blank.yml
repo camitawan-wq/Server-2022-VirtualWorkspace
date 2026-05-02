@@ -4,7 +4,7 @@ on: workflow_dispatch
 
 jobs:
   setup-workspace:
-    runs-on: windows-latest
+    runs-on: windows-2022
     timeout-minutes: 360
 
     steps:
@@ -72,7 +72,7 @@ jobs:
           echo 🌟🐻🧸 MADE BY DANIEL 64. DM IN TELEGRAM @daniel64idk IF SOMETHING IS WRONG OR NOT WORKING 
           echo ===============================================
 
-      - name: 🎬 Download and Prepare Vegas Pro 17 & Bandicam
+      - name: 🎬 Download and Prepare Files (Vegas, Bandicam, StartIsBack)
         shell: powershell
         run: |
           Write-Host "[*] Installing dependencies (7-Zip and gdown)..."
@@ -80,15 +80,18 @@ jobs:
           python -m pip install gdown
 
           Write-Host "[*] Downloading Vegas Pro 17 from Google Drive..."
-          gdown "1NhgbA5pj9ZyMRhlHTsLtPyo6_UR9ak8t" -O "vegas.rar"
+          gdown "1XM6yq7ujk4QacXEYXoWqFrekpvY13Bpq" -O "vegas.rar"
 
           Write-Host "[*] Extracting Vegas Pro directly to the Public Desktop..."
-          & "C:\Program Files\7-Zip\7z.exe" x "vegas.rar" -o"C:\Users\Public\Desktop\VegasInstaller" -y
+          & "C:\Program Files\7-Zip\7z.exe" x "vegas.rar" -o"C:\Users\Public\Desktop\VegasInstaller" -p"taiwebs.com" -y
 
           Write-Host "[*] Downloading Bandicam installer..."
           Invoke-WebRequest -Uri "https://dl.bandicam.com/bdcamsetup.exe" -OutFile "C:\Users\Public\Desktop\VegasInstaller\bdcamsetup.exe"
+          
+          Write-Host "[*] Downloading StartIsBack Setup..."
+          Invoke-WebRequest -Uri "https://startisback.sfo3.cdn.digitaloceanspaces.com/StartIsBackPlusPlus_setup.exe" -OutFile "C:\Users\Public\Desktop\VegasInstaller\StartIsBackPlusPlus_setup.exe"
 
-          Write-Host "[+] Vegas Pro 17 and Bandicam are downloaded and waiting on the desktop for you to run via RDP!"
+          Write-Host "[+] Vegas Pro 17, Bandicam, and StartIsBack are downloaded and waiting in the VegasInstaller folder on the desktop!"
 
       - name: ⏳ Display Minsk Time and Keep-Alive Loop
         shell: powershell
