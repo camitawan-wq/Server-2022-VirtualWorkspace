@@ -1,0 +1,104 @@
+name: Windows RDP via dockur-windows + Tailscale
+
+on:
+  workflow_dispatch:
+    inputs:
+      windows_version:
+        description: 'Select Windows version'
+        required: true
+        default: '2022'
+        type: choice
+        options:
+          - win11
+          - win10
+          - ltsc10
+          - win7
+          - winxp
+          - 2022 (Server)
+          - 2019 (Server)
+          - 2016 (Server)
+          - 2012 (Server)
+          - 2008 (Server)
+
+permissions:
+  contents: read
+
+jobs:
+  windows-vm:
+    runs-on: ubuntu-latest
+    env:
+      TAILSCALE_AUTHKEY: ${{ secrets.TAILSCALE_AUTHKEY }}
+      TAILSCALE_HOSTNAME: win-vm-${{ github.run_id }}
+      WINDOWS_VERSION: ${{ github.event.inputs.windows_version || '2022' }}
+      RDP_PORT: 3389
+      WEB_PORT: 8006
+
+    steps:
+      - name: Check KVM support
+        run: |
+          if [ -e /dev/kvm ] && [ -r /dev/kvm ] && [ -w /dev/kvm ]; then
+            echo "✅ KVM support available"
+            echo "KVM_OPTION=" >> $GITHUB_ENV
+          else
+            echo "⚠️ KVM not available (performance will be lower)"
+            echo "KVM_OPTION=-e KVM=N" >> $GITHUB_ENV
+          fi
+
+      - name: Install Docker
+        run: |
+          curl -fsSL https://get.docker.com | sudo sh
+          sudo usermod -aG docker $USER
+          sudo systemctl start docker
+
+      - name: Install Tailscale and connect
+        run: |
+          curl -fsSL https://tailscale.com/install.sh | sudo sh
+          sudo tailscale up --authkey "${TAILSCALE_AUTHKEY}" --hostname "${TAILSCALE_HOSTNAME}"
+
+      - name: Launch dockur-windows container
+        run: |
+          docker run -d \
+            --name windows \
+            --device=/dev/kvm \
+            --cap-add NET_ADMIN \
+            --stop-timeout 120 \
+            -p ${RDP_PORT}:3389/tcp \
+            -p ${RDP_PORT}:3389/udp \
+            -p ${WEB_PORT}:8006 \
+            -e VERSION="${WINDOWS_VERSION}" \
+            ${KVM_OPTION} \
+            dockurr/windows
+
+      - name: Wait for Windows installation to complete
+        run: |
+          echo "Windows is being installed (may take 10-20 minutes)..."
+          for i in {1..60}; do
+            if docker logs windows 2>&1 | grep -q "Windows is ready"; then
+              echo "✅ Windows installation successful!"
+              break
+            fi
+            sleep 20
+            echo "Attempt $i/60: Still installing..."
+            if [ $i -eq 60 ]; then
+              echo "⚠️ Timeout reached, check logs:"
+              docker logs windows --tail 30
+            fi
+          done
+
+      - name: Show connection information
+        run: |
+          TS_IP=$(tailscale ip -4 | head -n1)
+          echo "============================================================"
+          echo "        WINDOWS VM + TAILSCALE CONNECTION INFO              "
+          echo "============================================================"
+          echo "RDP address (via Tailscale): ${TS_IP}:${RDP_PORT}"
+          echo "Username: Docker"
+          echo "Password: (leave blank - set later)"
+          echo ""
+          echo "Web Viewer (via Tailscale): http://${TS_IP}:${WEB_PORT}"
+          echo ""
+          echo "Important: After connecting via RDP, set a Windows password."
+          echo "============================================================"
+
+      - name: Keep Alive (keep running for 6 hours)
+        run: while true; do sleep 600; done
