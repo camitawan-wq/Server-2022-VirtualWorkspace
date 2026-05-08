@@ -1,24 +1,13 @@
-name: "AnyDesk Official CLI Setup (Vegas + Chrome + Dark Mode)"
+name: "PC Setup Workflow"
 
 on:
   workflow_dispatch:
 
 jobs:
-  run-anydesk:
+  pc-setup:
     runs-on: windows-2022
     steps:
-      - name: 1. Install & Connect Tailscale
-        shell: powershell
-        run: |
-          $tsUrl = "https://pkgs.tailscale.com/stable/tailscale-setup-1.92.3-amd64.msi"
-          $installerPath = "$env:TEMP\tailscale.msi"
-          Invoke-WebRequest -Uri $tsUrl -OutFile $installerPath
-          Start-Process msiexec.exe -ArgumentList "/i", "`"$installerPath`"", "/quiet", "/norestart" -Wait
-          & "$env:ProgramFiles\Tailscale\tailscale.exe" up --authkey=${{ secrets.TAILSCALE_AUTHKEY }} --hostname=gh-runner-${{ github.run_id }}
-          $tsIP = & "$env:ProgramFiles\Tailscale\tailscale.exe" ip -4
-          "TAILSCALE_IP=$tsIP" | Out-File -Append $env:GITHUB_ENV
-
-      - name: 2. Official AnyDesk Installation & Logic
+      - name: 1. Official AnyDesk Installation & Logic
         shell: cmd
         run: |
           echo [INFO] Downloading Official AnyDesk.exe...
@@ -64,19 +53,9 @@ jobs:
           
           echo ANYDESK_ID=%ID% >> %GITHUB_ENV%
 
-      - name: 3. System Tweaks (Chrome, Dark Mode, Wallpaper)
+      - name: 2. System Tweaks (Dark Mode, Wallpaper)
         shell: powershell
         run: |
-          Write-Host "[*] Installing Google Chrome..."
-          choco install googlechrome -y
-
-          Write-Host "[*] Setting Chrome as default browser..."
-          $chromePath = "C:\Program Files\Google\Chrome\Application\chrome.exe"
-          if (Test-Path $chromePath) {
-              Start-Process -FilePath $chromePath -ArgumentList "--make-default-browser" -NoNewWindow -Wait
-              Write-Host "[+] Chrome is now the default browser."
-          }
-
           Write-Host "[*] Enabling Dark Mode..."
           $RegistryPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize"
           if (!(Test-Path $RegistryPath)) { New-Item -Path $RegistryPath -Force }
@@ -87,7 +66,6 @@ jobs:
           python -m pip install gdown
           $wallpaperPath = "C:\Users\Public\wallpaper.jpg"
           
-          # Запускаем gdown, игнорируя ошибку блокировки от Google
           gdown "1CqDRrlR_e1U0hkxEW2_iLB4c5n8SgcbC" -O $wallpaperPath
           
           if (Test-Path $wallpaperPath) {
@@ -96,11 +74,11 @@ jobs:
               [Wallpaper]::SystemParametersInfo(0x0014, 0, $wallpaperPath, 0x01 -bor 0x02)
               Write-Host "[+] Wallpaper set successfully."
           } else {
-              Write-Host "[!] Failed to download wallpaper from Google Drive (Check permissions). Moving on..."
+              Write-Host "[!] Failed to download wallpaper. Moving on..."
               $global:LASTEXITCODE = 0
           }
 
-      - name: 4. Download and Prepare Files (Vegas, Bandicam, VB-Audio, StartIsBack)
+      - name: 3. Download and Prepare Files (Vegas, Bandicam, Virtual Audio Cable, StartIsBack)
         shell: powershell
         run: |
           $desktopPath = "C:\Users\Public\Desktop\VegasInstaller"
@@ -115,7 +93,7 @@ jobs:
           if (Test-Path "vegas.rar") {
               & "C:\Program Files\7-Zip\7z.exe" x "vegas.rar" -o"$desktopPath" -p"taiwebs.com" -y
           } else {
-              Write-Host "[!] Vegas RAR not found, check GDrive link."
+              Write-Host "[!] Vegas RAR not found."
               $global:LASTEXITCODE = 0
           }
 
@@ -125,23 +103,20 @@ jobs:
           Write-Host "[*] Downloading StartIsBack Setup..."
           Invoke-WebRequest -Uri "https://startisback.sfo3.cdn.digitaloceanspaces.com/StartIsBackPlusPlus_setup.exe" -OutFile "$desktopPath\StartIsBackPlusPlus_setup.exe"
 
-          Write-Host "[*] Downloading VB-Audio Cable..."
-          Invoke-WebRequest -Uri "https://download.vb-audio.com/Download_CABLE/VBCABLE_Driver_Pack45.zip" -OutFile "vbcable.zip"
-          if (Test-Path "vbcable.zip") {
-              & "C:\Program Files\7-Zip\7z.exe" x "vbcable.zip" -o"$desktopPath\VB-Audio_Cable" -y
-          }
+          Write-Host "[*] Downloading Virtual Audio Cable (VAC)..."
+          Invoke-WebRequest -Uri "https://software.muzychenko.net/trials/vac470.exe" -OutFile "$desktopPath\vac470.exe"
 
           Write-Host "[+] All files ready in VegasInstaller folder on the desktop!"
 
-      - name: 5. Final Status & Keep Alive
+      - name: 4. Final Status & Keep Alive
         shell: powershell
         run: |
           $endTime = (Get-Date).AddHours(6)
           Write-Host "========================================"
-          Write-Host "ANYDESK READY"
-          Write-Host "ID: $env:ANYDESK_ID"
+          Write-Host "PC SETUP READY"
+          Write-Host "ANYDESK ID: $env:ANYDESK_ID"
           Write-Host "Password: MR.English2008"
-          Write-Host "Chrome Installed | Dark Mode Enabled | StartIsBack Setup on Desktop"
+          Write-Host "Dark Mode Enabled | Required Files on Desktop"
           Write-Host "========================================"
           
           while ((Get-Date) -lt $endTime) {
