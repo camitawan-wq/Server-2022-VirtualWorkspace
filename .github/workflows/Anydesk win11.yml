@@ -53,9 +53,12 @@ jobs:
           
           echo ANYDESK_ID=%ID% >> %GITHUB_ENV%
 
-      - name: 2. System Tweaks (Dark Mode, Wallpaper)
+      - name: 2. System Tweaks (Resolution, Dark Mode, Wallpaper)
         shell: powershell
         run: |
+          Write-Host "[*] Setting Display Resolution to 1920x1080..."
+          Set-DisplayResolution -Width 1920 -Height 1080 -Force
+
           Write-Host "[*] Enabling Dark Mode..."
           $RegistryPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize"
           if (!(Test-Path $RegistryPath)) { New-Item -Path $RegistryPath -Force }
@@ -66,7 +69,7 @@ jobs:
           python -m pip install gdown
           $wallpaperPath = "C:\Users\Public\wallpaper.jpg"
           
-          gdown "1CqDRrlR_e1U0hkxEW2_iLB4c5n8SgcbC" -O $wallpaperPath
+          gdown "12BPt0-LuFTKAwX3jObNuIrFDVxXWrO18" -O $wallpaperPath
           
           if (Test-Path $wallpaperPath) {
               $code = 'using System.Runtime.InteropServices; public class Wallpaper { [DllImport("user32.dll", CharSet = CharSet.Auto)] public static extern int SystemParametersInfo(int uAction, int uParam, string lpvParam, int fuWinIni); }'
@@ -116,7 +119,8 @@ jobs:
           Write-Host "PC SETUP READY"
           Write-Host "ANYDESK ID: $env:ANYDESK_ID"
           Write-Host "Password: MR.English2008"
-          Write-Host "Dark Mode Enabled | Required Files on Desktop"
+          Write-Host "Resolution: 1920x1080 | Dark Mode Enabled"
+          Write-Host "Required Files on Desktop"
           Write-Host "========================================"
           
           while ((Get-Date) -lt $endTime) {
